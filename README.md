@@ -16,7 +16,7 @@ A lightweight Chrome extension to save and manage timestamped bookmarks while wa
 
 ## Demo
 
-![Screenshot](./screenshot.png)
+![video](https://github.com/user-attachments/assets/9c73a5ad-6bf6-4515-b326-374e23d0dba5)
 
 ## 🧩 Installation
 
@@ -31,7 +31,7 @@ A lightweight Chrome extension to save and manage timestamped bookmarks while wa
 1. Clone or download the repository:
 
    ```bash
-   git clone https://github.com/yourusername/youtube-bookmark-extension.git
+   git clone https://github.com/renuthomas/YouTube-Bookmarker.git
 
    ```
 
@@ -62,7 +62,7 @@ youtube-bookmark-extension/
 ├── popup.html              # Bookmark management UI
 ├── popup.js                # Logic for displaying and jumping to bookmarks
 ├── popup.css               # Popup styling
-└── icons/                  # Browser action icons
+└── assets/                 # Browser action icons
 
 ```
 
@@ -70,9 +70,10 @@ youtube-bookmark-extension/
 
 This extension uses the following Chrome permissions:
 
-- storage – to save your bookmarks.
-- activeTab – to access the currently active YouTube tab.
-- scripting – for injecting scripts into YouTube pages.
+- `storage` – to save your bookmarks.
+- `activeTab` – to access the currently active YouTube tab.
+- `scripting` – for injecting scripts into YouTube pages.
+- `webNavigation` – Detect YouTube video changes via SPA routing
 
 # Development Notes
 
