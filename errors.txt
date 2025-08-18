@@ -1,7 +1,0 @@
-
-## Errors to fix ###
-
-1) Sometimes the page must be reloaded to ensure that the extension works.
-Description- Button exist but clicking on the button does not lead to anything
-
-What may cause the problem - 1) The id of the youtube video is not being obtained since the script is loaded before hand(may be)
