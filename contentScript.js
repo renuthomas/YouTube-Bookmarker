@@ -11,29 +11,33 @@
   };
 
   const fetchBookmarks = async (videoId) => {
-    return new Promise((resolve) => {
-      chrome.storage.sync.get([videoId], (obj) => {
-        resolve(obj[videoId] ? JSON.parse(obj[videoId]) : []);
-      });
-    });
+    const result = await chrome.storage.sync.get(videoId);
+    try {
+      return result[videoId] ? JSON.parse(result[videoId]) : [];
+    } catch {
+      return [];
+    }
   };
 
   const addNewBookmarkEventHandler = async () => {
     const currentTime = youtubePlayer.currentTime;
+
     const newBookmark = {
       time: currentTime,
-      desc: "Bookmark at " + getTime(currentTime),
+      desc: `Bookmark at ${getTime(currentTime)}`,
     };
-    console.log(newBookmark);
+    console.log("New bookmark:", newBookmark);
 
-    currentVideoBookmarks = await fetchBookmarks(currentVideo);
-    console.log(currentVideoBookmarks);
+    let currentVideoBookmarks = await fetchBookmarks(currentVideo);
 
-    chrome.storage.sync.set({
-      [currentVideo]: JSON.stringify(
-        [...currentVideoBookmarks, newBookmark].sort((a, b) => a.time - b.time)
-      ),
+    currentVideoBookmarks.push(newBookmark);
+    currentVideoBookmarks.sort((a, b) => a.time - b.time);
+
+    await chrome.storage.sync.set({
+      [currentVideo]: JSON.stringify(currentVideoBookmarks),
     });
+
+    console.log("Updated bookmarks:", currentVideoBookmarks);
   };
 
   const newVideoLoaded = async (videoId) => {

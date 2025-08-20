@@ -16,7 +16,7 @@ A lightweight Chrome extension to save and manage timestamped bookmarks while wa
 
 ## Demo
 
-![video](https://github.com/user-attachments/assets/9c73a5ad-6bf6-4515-b326-374e23d0dba5)
+[![video](https://github.com/user-attachments/assets/9c73a5ad-6bf6-4515-b326-374e23d0dba5)]
 
 ## 🧩 Installation
 
