@@ -38,25 +38,30 @@ const viewBookmarks = (currentBookmarks = []) => {
 };
 
 const onPlay = (e) => {
-  const bookmarkTime = e.target.parentNode.parentNode.getAttribute("timestamp");
-  chrome.runtime.sendMessage({
-    type: "PLAY_BOOKMARK",
-    value: bookmarkTime,
-  });
+  const bookmarkElement = e.target.closest(".bookmark");
+  const bookmarkTime = bookmarkElement ? bookmarkElement.getAttribute("timestamp") : null;
+
+  if (bookmarkTime) {
+    chrome.runtime.sendMessage({
+      type: "PLAY_BOOKMARK",
+      value: bookmarkTime,
+    });
+  }
 };
 
 const onDelete = (e) => {
-  const bookmarkTime = e.target.parentNode.parentNode.getAttribute("timestamp");
-  const bookmarkElementToDelete = document.getElementById(
-    "bookmark-" + bookmarkTime
-  );
-  if (bookmarkElementToDelete) {
-    bookmarkElementToDelete.parentNode.removeChild(bookmarkElementToDelete);
+  const bookmarkElement = e.target.closest(".bookmark");
+  const bookmarkTime = bookmarkElement ? bookmarkElement.getAttribute("timestamp") : null;
+
+  if (bookmarkTime) {
+    const bookmarkElementToDelete = document.getElementById("bookmark-" + bookmarkTime);
+    bookmarkElementToDelete?.remove();
+
+    chrome.runtime.sendMessage({
+      type: "DELETE_BOOKMARK",
+      value: bookmarkTime,
+    });
   }
-  chrome.runtime.sendMessage({
-    type: "DELETE_BOOKMARK",
-    value: bookmarkTime,
-  });
 };
 
 const setBookmarkAttributes = (src, eventListener, controlParentElement) => {
