@@ -1,11 +1,10 @@
 (() => {
   let youtubeRightControls, youtubePlayer;
   let currentVideo = "";
-  let currentVideoBookmarks = [];
   let isVideoReady = false;
 
   const getTime = (t) => {
-    var date = new Date(0);
+    const date = new Date(0);
     date.setSeconds(t);
     return date.toISOString().substring(11, 19);
   };
@@ -20,16 +19,16 @@
   };
 
   const addNewBookmarkEventHandler = async () => {
-    const currentTime = youtubePlayer.currentTime;
+    if (!youtubePlayer || !currentVideo) return;
 
+    const currentTime = youtubePlayer.currentTime;
     const newBookmark = {
       time: currentTime,
       desc: `Bookmark at ${getTime(currentTime)}`,
     };
     console.log("New bookmark:", newBookmark);
-
-    let currentVideoBookmarks = await fetchBookmarks(currentVideo);
-
+    
+    const currentVideoBookmarks = await fetchBookmarks(currentVideo);
     currentVideoBookmarks.push(newBookmark);
     currentVideoBookmarks.sort((a, b) => a.time - b.time);
 
@@ -49,35 +48,32 @@
     bookmarkBtn.src = chrome.runtime.getURL("assets/bookmark.png");
     bookmarkBtn.className = "ytp-button bookmark-btn";
     bookmarkBtn.title = "Click to bookmark current timestamp";
+    bookmarkBtn.style.cursor = "pointer";
 
     youtubeRightControls.prepend(bookmarkBtn);
     bookmarkBtn.addEventListener("click", addNewBookmarkEventHandler);
 
     currentVideo = videoId;
-    currentVideoBookmarks = await fetchBookmarks(videoId);
     isVideoReady = true;
   };
 
-  // This function is for initial page load only
   const checkForPlayer = (mutations, observer) => {
     youtubePlayer = document.getElementsByClassName("video-stream")[0];
-    youtubeRightControls =
-      document.getElementsByClassName("ytp-right-controls")[0];
+    youtubeRightControls = document.getElementsByClassName("ytp-right-controls")[0];
 
     if (youtubePlayer && youtubeRightControls) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const videoId = urlParams.get("v");
+      const videoId = new URLSearchParams(window.location.search).get("v") || window.location.href.match(/[?&]v=([^&#]+)/)?.[1];
       if (videoId) {
         newVideoLoaded(videoId);
       }
-      2;
       observer.disconnect();
     }
   };
+
   const observer = new MutationObserver(checkForPlayer);
   observer.observe(document.body, { childList: true, subtree: true });
 
-  chrome.runtime.onMessage.addListener((obj, sender, response) => {
+  chrome.runtime.onMessage.addListener((obj, sender, sendResponse) => {
     const { type, value } = obj;
 
     if (type === "NEW") {
@@ -87,16 +83,27 @@
         existingBtn.remove();
       }
       observer.observe(document.body, { childList: true, subtree: true });
-    } else if (type === "PLAY" && isVideoReady) {
+      sendResponse({ status: "Observer re-armed" }); // Closes channel safely
+    } 
+    
+    else if (type === "PLAY" && isVideoReady && youtubePlayer) {
       youtubePlayer.currentTime = value;
-    } else if (type === "DELETE" && isVideoReady) {
-      currentVideoBookmarks = currentVideoBookmarks.filter(
-        (b) => b.time != value
-      );
-      chrome.storage.sync.set({
-        [currentVideo]: JSON.stringify(currentVideoBookmarks),
+      sendResponse({ status: "Playback jumped" }); // Closes channel safely
+    } 
+    
+    else if (type === "DELETE" && isVideoReady) {
+      fetchBookmarks(currentVideo).then((bookmarks) => {
+        const filteredBookmarks = bookmarks.filter((b) => b.time != value);
+        chrome.storage.sync.set({
+          [currentVideo]: JSON.stringify(filteredBookmarks),
+        }, () => {
+          sendResponse(filteredBookmarks);
+        });
       });
-      response(currentVideoBookmarks);
+
+      return true; // Keeps channel open explicitly for async sendResponse
     }
-  });
+
+    return false; // Safely tells Chrome no async response is coming for other types
+  }); 
 })();
